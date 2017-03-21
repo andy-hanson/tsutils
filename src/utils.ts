@@ -180,31 +180,40 @@ export const enum ScopeBoundary {
     Function,
     Block,
 }
-export function isScopeBoundary(node: ts.Node): ScopeBoundary {
-    if (isFunctionScopeBoundary(node))
+export function isScopeBoundary(node: ts.Node, typesAndSignatures?: boolean): ScopeBoundary {
+    if (isFunctionScopeBoundary(node, typesAndSignatures))
         return ScopeBoundary.Function;
     if (isBlockScopeBoundary(node))
         return ScopeBoundary.Block;
     return ScopeBoundary.None;
 }
 
-export function isFunctionScopeBoundary(node: ts.Node): boolean {
+export function isFunctionScopeBoundary(node: ts.Node, typesAndSignatures?: boolean): boolean {
     switch (node.kind) {
-        case ts.SyntaxKind.FunctionDeclaration:
         case ts.SyntaxKind.FunctionExpression:
         case ts.SyntaxKind.ArrowFunction:
-        case ts.SyntaxKind.MethodDeclaration:
         case ts.SyntaxKind.Constructor:
-        case ts.SyntaxKind.GetAccessor:
-        case ts.SyntaxKind.SetAccessor:
         case ts.SyntaxKind.ModuleDeclaration:
         case ts.SyntaxKind.ClassDeclaration:
         case ts.SyntaxKind.ClassExpression:
         case ts.SyntaxKind.EnumDeclaration:
             return true;
+        case ts.SyntaxKind.MethodDeclaration:
+        case ts.SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.GetAccessor:
+        case ts.SyntaxKind.SetAccessor:
+            return typesAndSignatures || (<ts.FunctionLikeDeclaration>node).body !== undefined;
         case ts.SyntaxKind.SourceFile:
             // if SourceFile is no module, it contributes to the global scope and is therefore no scope boundary
             return ts.isExternalModule(<ts.SourceFile>node);
+        case ts.SyntaxKind.InterfaceDeclaration:
+        case ts.SyntaxKind.TypeAliasDeclaration:
+        case ts.SyntaxKind.MethodSignature:
+        case ts.SyntaxKind.CallSignature:
+        case ts.SyntaxKind.ConstructSignature:
+        case ts.SyntaxKind.ConstructorType:
+        case ts.SyntaxKind.FunctionType:
+            return typesAndSignatures === true;
         default:
             return false;
     }
