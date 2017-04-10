@@ -53,8 +53,8 @@ function convertAst(sourceFile: ts.SourceFile): ConvertedAst {
             next: undefined,
             skip: undefined,
         };
-        if (previous !== parent)
-            setSkip(previous, current);
+        for (; previous !== parent; previous = previous.parent!)
+            previous.skip = current;
 
         previous = current;
         parent.children.push(current);
@@ -68,11 +68,4 @@ function convertAst(sourceFile: ts.SourceFile): ConvertedAst {
         wrapped,
         flat,
     };
-}
-
-function setSkip(node: NodeWrap, skip: NodeWrap) {
-    do {
-        node.skip = skip;
-        node = node.parent!;
-    } while (node !== skip.parent);
 }
