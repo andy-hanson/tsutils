@@ -1,5 +1,7 @@
 import * as ts from 'typescript';
 
+import { isNodeKind } from './utils';
+
 export interface NodeWrap {
     node: ts.Node;
     children: NodeWrap[];
@@ -59,7 +61,8 @@ function convertAst(sourceFile: ts.SourceFile): ConvertedAst {
         previous = current;
         parent.children.push(current);
 
-        ts.forEachChild(node, wrap);
+        if (isNodeKind(node.kind))
+            ts.forEachChild(node, wrap);
 
         current = parent;
     });
